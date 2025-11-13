@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <title>{{ stage_label }}</title>
+  <style>
+    /* ===== Dark (charcoal/grey) theme + green/orange accents ===== */
+    :root{
+      color-scheme: dark;
+      --bg:#0f1012; --surface:#151617; --surface-2:#1a1b1d;
+      --text:#eceff1; --muted:#a6abb0; --border:#26292b;
+      --green-300:#86efac; --green-400:#59d98a; --green-500:#2ec66d; --green-600:#1eaa59; --green-700:#16894a;
+      --orange-400:#f59e0b; --orange-500:#f59e0b; --orange-600:#d97706;
+      --ring: 0 0 0 3px rgba(46,198,109,.25);
+      --radius-xl: 18px; --radius-lg: 12px;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    html,body{height:100%}
+    body{
+      margin:0; padding:32px 20px;
+      background:
+        radial-gradient(900px 600px at 15% -10%, rgba(255,255,255,.05), transparent 60%),
+        radial-gradient(700px 500px at 110% -20%, rgba(255,255,255,.03), transparent 70%),
+        var(--bg);
+      color:var(--text);
+    }
+    .wrapper{ max-width: 1640px; margin: 0 auto; }
+
+    /* ===== Top bar ===== */
+    .topbar{
+      display:grid;
+      grid-template-columns: 1fr auto 1fr; /* lewo | tytuł | prawo(puste) */
+      align-items:center; gap:12px; margin-bottom:20px;
+    }
+    .topbar .back{
+      justify-self:start; text-decoration:none; padding:8px 12px; border-radius:10px;
+      border:1px solid var(--border); background:var(--surface-2); color:var(--text);
+    }
+    .topbar .back:hover{ border-color:#2b2f32; }
+    .topbar h1{
+      margin:0; font-size:26px; letter-spacing:.3px; color:#f4f6f8; text-align:center;
+    }
+
+    /* ===== Layout: Sidebar | Main | Aside ===== */
+    .layout{
+      display:grid;
+      grid-template-columns: 220px minmax(520px,1fr) 300px;
+      gap:20px;
+      align-items:start;
+    }
+
+    /* Sidebar (etapy) */
+    .stages{
+      background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-xl); padding:14px;
+    }
+    .stages h3{ margin:4px 0 10px; font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:#cfd6dc; }
+    .stages ul{ list-style:none; padding:0; margin:0; display:grid; gap:8px; }
+    .stages a{
+      display:flex; align-items:center; gap:8px; text-decoration:none;
+      padding:10px 12px; border-radius:10px; color:var(--text); border:1px solid var(--border); background:#141516;
+      font-size:14px;
+    }
+    .stages a .dot{ width:8px; height:8px; border-radius:999px; background:#5b6268; flex:none; }
+    .stages a.completed{
+      border-color:#16894a;
+      background:linear-gradient(180deg, rgba(46,198,109,.14), rgba(46,198,109,.08));
+    }
+    .stages a.completed .dot{ background:var(--green-500); }
+    .stages a.current{
+      border-color: var(--orange-500);
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, .3) inset;
+      background: linear-gradient(180deg, rgba(245,158,11,.18), rgba(245,158,11,.08));
+    }
+    .stages a:hover{ border-color:#2b2f32; }
+
+    /* Main (opis + czat) */
+    .card{
+      background:var(--surface-2);
+      border:1px solid var(--border);
+      border-radius:var(--radius-xl);
+      padding:14px;
+      overflow:hidden;            /* nic nie wyjdzie poza kartę */
+    }
+
+    .case-text{
+      box-sizing: border-box;
+      display:block;
+      width:100%;
+      min-height:72px;
+      max-height: clamp(160px, 22vh, 260px);
+      margin: 0 0 12px 0;
+      padding:12px 12px;
+      border:1px solid var(--border);
+      border-radius:10px;
+      background:#141516;
+      color:var(--text);
+      font-size:20px;             /* +5 */
+      line-height:1.5;
+      resize:none;
+      overflow:auto;
+    }
+
+    /* ===== Chat: kolumna, bąbelki z wyrównaniem L/R ===== */
+    .messages{
+      border:1px solid var(--border);
+      background:#141516;
+      padding:16px;
+      height:520px;               /* odrobinę większe okno czatu */
+      overflow-y:auto;
+      margin:12px 0;
+      border-radius:12px;
+
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .msg{ display:flex; }
+    .msg.assistant{ justify-content:flex-start; }
+    .msg.user{ justify-content:flex-end; }
+
+    .msg .bubble{
+      display:block;
+      padding:12px 14px;
+      border-radius:12px;
+      background:#101315;
+      border:1px solid var(--border);
+      color:var(--text);
+      white-space:pre-wrap;
+      word-break:break-word;
+      max-width: min(720px, 82%);
+      width: fit-content;
+
+      font-size:18px;             /* większy tekst w czacie */
+      line-height:1.6;
+    }
+
+    .msg .bubble > strong{
+      display:block;
+      margin-bottom:6px;
+      font-weight:700;
+    }
+
+    .msg.user .bubble{
+      background:#0f1a13;
+      border-color:#165b36;
+      color:var(--green-300);
+    }
+
+    form.send{ display:flex; gap:10px }
+    input[type="text"]{
+      flex:1; padding:10px; border-radius:10px; border:1px solid var(--border);
+      font-size:16px; background:#141516; color:var(--text); outline:none;
+    }
+    input[type="text"]:focus{ box-shadow:var(--ring); border-color:#1f9e59 }
+    button{
+      padding:10px 14px; border:1px solid #167f48; background:linear-gradient(180deg, var(--green-600), var(--green-700));
+      color:#fff; border-radius:10px; cursor:pointer; font-weight:600;
+      transition:transform .15s ease, filter .15s ease;
+    }
+    button:hover{ transform:translateY(-1px); filter:brightness(1.03) }
+
+    .row{ display:flex; justify-content:space-between; align-items:center; margin-top:10px; gap:8px }
+    .link-btn{
+      padding:10px 14px; border:1px solid var(--border); background:transparent; color:var(--text);
+      border-radius:10px; text-decoration:none; display:inline-block;
+    }
+    .link-btn.ghost{ background:#141516; }
+    .link-btn:hover{ border-color:#2b2f32 }
+    .muted{ color:var(--muted) }
+
+    /* Aside (pusta prawa kolumna) */
+    .aside{
+      background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-xl); padding:14px;
+      min-height:180px;
+    }
+    .placeholder{
+      border:2px dashed rgba(255,255,255,.12); border-radius:12px; padding:16px;
+      text-align:center; color:var(--muted); min-height:140px; display:flex; align-items:center; justify-content:center;
+    }
+
+    /* komunikat po zaliczeniu */
+    .notice{
+      background: rgba(46,198,109,.10);
+      border: 1px solid rgba(46,198,109,.35);
+      color: var(--green-300);
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      margin: 10px 0 0 0;
+    }
+
+    .hidden{ display:none; }
+
+    @media (max-width: 960px){
+      .layout{ grid-template-columns: 1fr; }
+    }
+
+    /* Typing indicator w bąblu */
+    .typing .dot{ display:inline-block; width:6px; height:6px; margin:0 2px; border-radius:50%; background:#9aa0a6; opacity:.6; animation: blink 1.2s infinite; }
+    .typing .dot:nth-child(2){ animation-delay:.15s }
+    .typing .dot:nth-child(3){ animation-delay:.3s }
+    @keyframes blink{ 0%{opacity:.2} 20%{opacity:1} 100%{opacity:.2} }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <!-- TOP BAR: back on left, centered title -->
+    <div class="topbar">
+      <div>
+        <a class="back" href="{% url 'home' %}">← Wróć</a>
+      </div>
+      <h1>{{ stage_label|upper }}</h1>
+      <div></div>
+    </div>
+
+    <!-- LAYOUT: sidebar (etapy) | main | aside -->
+    <div class="layout">
+      <!-- SIDEBAR -->
+      <aside class="stages">
+        <h3>Etapy</h3>
+        <ul>
+          {% with cs=completed_stages %}
+          <li>
+            <a href="{% url 'chat-stage' case.slug 'diagnostics' %}"
+               class="{% if stage == 'diagnostics' %}current{% elif 'diagnostics' in cs %}completed{% endif %}">
+              <span class="dot"></span> Diagnostyka
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'chat-stage' case.slug 'first_exam' %}"
+               class="{% if stage == 'first_exam' %}current{% elif 'first_exam' in cs %}completed{% endif %}">
+              <span class="dot"></span> Rozpoznanie wstępne
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'chat-stage' case.slug 'meds' %}"
+               class="{% if stage == 'meds' %}current{% elif 'meds' in cs %}completed{% endif %}">
+              <span class="dot"></span> Leczenie ostre
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'chat-stage' case.slug 'reco' %}"
+               class="{% if stage == 'reco' %}current{% elif 'reco' in cs %}completed{% endif %}">
+              <span class="dot"></span> Zalecenia po leczeniu
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'chat-stage' case.slug 'dispo' %}"
+               class="{% if stage == 'dispo' %}current{% elif 'dispo' in cs %}completed{% endif %}">
+              <span class="dot"></span> Skierowanie / Dispo
+            </a>
+          </li>
+          {% endwith %}
+        </ul>
+      </aside>
+
+      <!-- MAIN: opis + chat -->
+      <main class="card">
+        {% if case.content %}
+          <textarea class="case-text" id="caseText" readonly>{{ case.content }}</textarea>
+        {% endif %}
+
+        <div class="messages" id="chatBox">
+          {% if chat %}
+            {% for m in chat %}
+              <div class="msg {% if m.role == 'user' %}user{% else %}assistant{% endif %}">
+                <div class="bubble">
+                  <strong>{% if m.role == 'user' %}Ty:{% else %}Asystent:{% endif %}</strong>
+                  {{ m.text|escape }}
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <p class="muted" style="text-align:center;">Brak wiadomości.</p>
+          {% endif %}
+        </div>
+
+        <form class="send" method="post" action="{% url 'chat-stage' case.slug stage %}">
+          {% csrf_token %}
+          <input
+            type="text"
+            name="message"
+            placeholder="Napisz wiadomość..."
+            {% if stage_completed %}disabled aria-disabled="true"{% endif %}
+            required>
+          <button type="submit" {% if stage_completed %}disabled aria-disabled="true"{% endif %}>Wyślij</button>
+        </form>
+
+        {% if stage_completed %}
+          <div class="notice">Etap „{{ stage_label }}” został zaliczony. Czat jest zablokowany — możesz przeglądać historię.</div>
+        {% endif %}
+
+        <!-- Nawigacja etapów (zachowana logika, sterowanie widocznością po JS) -->
+        <div class="row">
+          <div>
+            {% if prev_stage %}
+              <a class="link-btn ghost" href="{% url 'chat-stage' case.slug prev_stage %}">← {{ prev_stage }}</a>
+            {% endif %}
+          </div>
+          <div>
+            {% if next_stage %}
+              <a id="nextLink"
+                 class="link-btn {% if not can_proceed_to_dx and not stage_completed %}hidden{% endif %}"
+                 href="{% url 'chat-stage' case.slug next_stage %}">
+                Przejdź dalej →
+              </a>
+            {% endif %}
+            <span id="keepWorking"
+                  class="muted {% if can_proceed_to_dx or stage_completed %}hidden{% endif %}">
+              Kontynuuj, aż system zaliczy ten etap.
+            </span>
+          </div>
+        </div>
+      </main>
+
+      <!-- ASIDE: pusty panel na przyszłe podpowiedzi -->
+      <aside class="aside">
+        <div class="placeholder">
+          (Puste) Tu pojawią się podpowiedzi / checklisty.
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    // CSRF helper (Django)
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+    const csrf = getCookie('csrftoken');
+
+    // Auto-scroll do dołu czatu
+    const chatBox = document.getElementById('chatBox');
+    function scrollChatBottom(){ if (chatBox) chatBox.scrollTop = chatBox.scrollHeight; }
+    scrollChatBottom();
+
+    // Auto-height dla opisu przypadku
+    const t = document.getElementById('caseText');
+    if (t){
+      const fit = () => {
+        t.style.height = 'auto';
+        const max = Math.round(window.innerHeight * 0.28);  // ~28% wysokości okna
+        t.style.height = Math.min(t.scrollHeight, max) + 'px';
+      };
+      fit();
+      window.addEventListener('resize', fit);
+    }
+
+    // Optymistyczne wysyłanie: pokaż user msg od razu + typing dla bota
+    const form = document.querySelector('form.send');
+    const input = form ? form.querySelector('input[name="message"]') : null;
+    const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
+
+    function appendUserMessage(text){
+      const wrap = document.createElement('div');
+      wrap.className = 'msg user';
+      wrap.innerHTML = `<div class="bubble"><strong>Ty:</strong></div>`;
+      wrap.querySelector('.bubble').append(text);
+      chatBox.appendChild(wrap);
+    }
+    function appendTyping(){
+      const wrap = document.createElement('div');
+      wrap.className = 'msg assistant';
+      wrap.dataset.typing = "1";
+      wrap.innerHTML = `<div class="bubble typing"><strong>Asystent:</strong><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`;
+      chatBox.appendChild(wrap);
+      return wrap;
+    }
+    function replaceTypingWithBot(typingEl, text){
+      if (!typingEl) return;
+      typingEl.classList.remove('typing');
+      typingEl.innerHTML = `<div class="bubble"><strong>Asystent:</strong></div>`;
+      typingEl.querySelector('.bubble').append(text);
+    }
+
+    if (form && input && submitBtn) {
+      form.addEventListener('submit', async (e) => {
+        if (input.disabled || submitBtn.disabled) return;
+        e.preventDefault();
+        const text = (input.value || '').trim();
+        if (!text) return;
+
+        appendUserMessage(text);
+        scrollChatBottom();
+
+        const typingEl = appendTyping();
+        input.value = '';
+        input.disabled = true;
+        submitBtn.disabled = true;
+
+        try {
+          const resp = await fetch(window.location.href, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRFToken': csrf
+            },
+            body: new URLSearchParams({ 'message': text, 'ajax': '1' })
+          });
+
+          const data = await resp.json();
+
+          if (!data.ok) {
+            typingEl.remove();
+            input.disabled = true;
+            submitBtn.disabled = true;
+            scrollChatBottom();
+            return;
+          }
+
+          replaceTypingWithBot(typingEl, data.bot_text || '');
+          scrollChatBottom();
+
+          if (data.stage_completed) {
+            input.disabled = true;
+            submitBtn.disabled = true;
+
+            const nextLink = document.getElementById('nextLink');
+            const keepWorking = document.getElementById('keepWorking');
+            if (keepWorking) keepWorking.classList.add('hidden');
+            if (nextLink && nextLink.getAttribute('href')) nextLink.classList.remove('hidden');
+
+            const current = document.querySelector('.stages a.current');
+            if (current) {
+              current.classList.remove('current');
+              current.classList.add('completed');
+            }
+          } else {
+            input.disabled = false;
+            submitBtn.disabled = false;
+            input.focus();
+          }
+        } catch (err) {
+          if (typingEl) typingEl.remove();
+          input.value = text;
+          input.disabled = false;
+          submitBtn.disabled = false;
+          form.submit();
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>

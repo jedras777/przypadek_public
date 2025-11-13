@@ -1,0 +1,147 @@
+{# templates/chat/summary.html #}
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <title>Podsumowanie — {{ case.name }}</title>
+  <style>
+    :root{
+      color-scheme: dark;
+      --bg:#0f1012; --surface:#151617; --surface-2:#1a1b1d;
+      --text:#eceff1; --muted:#a6abb0; --border:#26292b;
+      --green-300:#86efac; --green-500:#2ec66d; --green-700:#16894a;
+      --orange-500:#f59e0b;
+      --radius-xl: 18px; --radius-lg: 12px;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    body{
+      margin:0; padding:32px 20px;
+      background:
+        radial-gradient(900px 600px at 15% -10%, rgba(255,255,255,.05), transparent 60%),
+        radial-gradient(700px 500px at 110% -20%, rgba(255,255,255,.03), transparent 70%),
+        var(--bg);
+      color:var(--text);
+    }
+    .wrapper{ max-width: 980px; margin: 0 auto; }
+
+    .topbar{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; margin-bottom:20px }
+    .back{ justify-self:start; text-decoration:none; padding:8px 12px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--text) }
+    h1{ margin:0; font-size:26px; text-align:center }
+
+    .card{ background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-xl); padding:16px; }
+
+    .success{
+      border:1px solid rgba(46,198,109,.35);
+      background: rgba(46,198,109,.12);
+      color:var(--green-300);
+      padding:12px 14px; border-radius:12px; margin-bottom:14px;
+    }
+
+    .actions{ display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; }
+    .btn{ padding:12px 16px; border-radius:12px; text-decoration:none; font-weight:600; border:1px solid var(--border); background:#141516; color:var(--text); display:inline-block }
+    .btn.primary{ border-color:#167f48; background:linear-gradient(180deg,#1eaa59,#16894a); color:#fff }
+    .btn.warn{ border-color:#a16207; background:linear-gradient(180deg,#f59e0b,#d97706); color:#fff }
+
+    .evaluation{ margin-top:18px; padding:18px; border-radius:var(--radius-xl); border:1px solid rgba(46,198,109,.35); background:rgba(46,198,109,.08); }
+    .evaluation h3{ margin:0 0 8px; font-size:18px; }
+    .verdict{ font-size:16px; font-weight:600; margin:0 0 12px; }
+    .muted{ color:var(--muted) }
+
+    /* Chat bubbles */
+    .chat { display:flex; flex-direction:column; gap:12px; margin-top:12px; }
+    .msg { display:flex; }
+    .bubble{
+      max-width: 78%;
+      padding:12px 14px;
+      border-radius:16px;
+      border:1px solid var(--border);
+      background: #141516;
+      white-space:pre-wrap;
+      line-height:1.4;
+    }
+    .msg.user { justify-content:flex-start; }
+    .msg.user .bubble{
+      background:linear-gradient(180deg, #1f2937, #16181b);
+    }
+    .msg.assistant { justify-content:flex-end; }
+    .msg.assistant .bubble{
+      background:linear-gradient(180deg, #1eaa59, #16894a);
+      color:#fff;
+      border-color:#167f48;
+    }
+    .meta{
+      align-self:flex-end;
+      font-size:11px;
+      color:var(--muted);
+      margin:0 8px;
+      min-width:70px;
+      text-align:center;
+    }
+    h3.section{ margin:22px 0 8px; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="topbar">
+      <a class="back" href="{% url 'chat-stage' case.slug 'dispo' %}">← Wróć</a>
+      <h1>PODSUMOWANIE</h1>
+      <div></div>
+    </div>
+
+    <main class="card">
+      <div class="success">
+        Przypadek <strong>{{ case.name }}</strong> został zaliczony.
+        {% if request.user.is_authenticated %}
+          {% if case_saved %} Zapisaliśmy to podejście w „Ukończone przypadki”.{% else %} Zapis nastąpi po zatwierdzeniu poniżej.{% endif %}
+        {% else %}
+          Zaloguj się, aby zapisać to podejście w „Ukończone przypadki”.
+        {% endif %}
+      </div>
+
+      <div class="actions">
+        <form method="post" action="{% url 'case-reset' case.slug %}">
+          {% csrf_token %}
+          <button class="btn warn" type="submit">Uruchom od nowa</button>
+        </form>
+
+        <a class="btn" href="{% url 'home' %}">Wróć do przypadków</a>
+
+        {% if request.user.is_authenticated %}
+          <a class="btn primary" href="{% url 'completed-grouped' %}">Ukończone przypadki</a>
+
+        {% endif %}
+      </div>
+
+      {% if summary_payload.data %}
+        {% with result=summary_payload.data %}
+          <section class="evaluation">
+            <h3>Ocena asystenta</h3>
+            {% if result.verdict %}
+              <p class="verdict">{{ result.verdict }}</p>
+            {% endif %}
+            {% if result.summary %}
+              <p>{{ result.summary }}</p>
+            {% else %}
+              <p class="muted">Brak skrótowego podsumowania.</p>
+            {% endif %}
+          </section>
+        {% endwith %}
+      {% endif %}
+
+      <h3 class="section">Historia rozmowy</h3>
+      <div class="chat">
+        {% for stage_key, messages in chats.items %}
+          {% if messages %}
+            {% for m in messages %}
+              <div class="msg {% if m.role == 'user' %}user{% else %}assistant{% endif %}">
+                <div class="bubble">{{ m.text|linebreaksbr }}</div>
+                <div class="meta">{% if m.role == 'user' %}Ty{% else %}Asystent{% endif %}</div>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endfor %}
+      </div>
+    </main>
+  </div>
+</body>
+</html>

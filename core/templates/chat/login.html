@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <title>Zaloguj się — Przypadek.pl</title>
+  <style>
+    /* ===== Dark (charcoal/grey) theme + green accents ===== */
+    :root{
+      color-scheme: dark;
+      --bg:#0f1012; --surface:#151617; --surface-2:#1a1b1d;
+      --text:#eceff1; --muted:#a6abb0; --border:#26292b;
+      --green-300:#86efac; --green-400:#59d98a; --green-500:#2ec66d; --green-600:#1eaa59; --green-700:#16894a;
+      --ring: 0 0 0 3px rgba(46,198,109,.25);
+      --radius:22px;
+      font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; display:flex; align-items:center; justify-content:center; min-height:100vh;
+      background:
+        radial-gradient(900px 600px at 15% -10%, rgba(255,255,255,.05), transparent 60%),
+        radial-gradient(700px 500px at 110% -20%, rgba(255,255,255,.03), transparent 70%),
+        var(--bg);
+      color:var(--text);
+    }
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)) , var(--surface-2);
+      width:min(420px, 90vw);
+      padding:36px 32px;
+      border-radius:var(--radius);
+      box-shadow:0 28px 66px -44px rgba(0,0,0,.9);
+      border:1px solid var(--border);
+    }
+
+    h1{margin:0 0 8px; font-size:28px; color:#f4f6f8; text-align:center}
+    p{margin:0 0 28px; text-align:center; color:var(--muted)}
+
+    form{display:grid; gap:16px}
+    label{font-weight:600; color:#e7e9ec; margin-bottom:6px; display:inline-block}
+
+    input{
+      width:100%; padding:12px 14px; border-radius:12px;
+      border:1px solid var(--border); font-size:16px;
+      background:#141516; color:var(--text);
+      outline:none;
+    }
+    input:focus{box-shadow:var(--ring); border-color:#1f9e59}
+
+    button{
+      padding:12px 16px; border-radius:12px; border:1px solid #167f48;
+      background:linear-gradient(180deg, var(--green-600), var(--green-700));
+      color:#fff; font-weight:600; cursor:pointer;
+      transition:transform .15s ease, filter .15s ease;
+    }
+    button:hover{transform:translateY(-1px); filter:brightness(1.03)}
+
+    .secondary{ text-align:center; margin-top:12px; color:var(--muted); font-size:14px }
+    .secondary a{ color:var(--green-400); font-weight:600; text-decoration:none }
+
+    .errorlist{
+      background:rgba(244, 63, 94, .12);
+      border:1px solid rgba(244, 63, 94, .35);
+      padding:10px 14px; border-radius:12px; color:#fecdd3; margin:0 0 8px; list-style:none;
+    }
+  </style>
+
+</head>
+<body>
+  <div class="card">
+    <h1>Zaloguj się</h1>
+    <p>Wprowadź dane konta, aby kontynuować pracę z przypadkami.</p>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% if next %}
+        <input type="hidden" name="next" value="{{ next }}">
+      {% endif %}
+      {{ form.non_field_errors }}
+      <div>
+        <label for="id_username">Nazwa użytkownika</label>
+        {{ form.username }}
+        {{ form.username.errors }}
+      </div>
+      <div>
+        <label for="id_password">Hasło</label>
+        {{ form.password }}
+        {{ form.password.errors }}
+      </div>
+      <button type="submit">Zaloguj się</button>
+    </form>
+    <div class="secondary">
+      Nie masz konta? <a href="{% url 'register' %}">Zarejestruj się</a>
+    </div>
+    <div class="secondary" style="margin-top:6px;">
+      <a href="{% url 'home' %}">← Wróć na stronę główną</a>
+    </div>
+  </div>
+</body>
+</html>

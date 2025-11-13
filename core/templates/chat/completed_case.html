@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <title>{{ case.name }} — podejścia</title>
+  <style>
+    :root{color-scheme:dark;--bg:#0f1012;--surface:#1a1b1d;--border:#26292b;--text:#eceff1;--muted:#a6abb0}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+    .wrap{max-width:980px;margin:0 auto;padding:28px 18px}
+    .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .back{color:var(--text);text-decoration:none;border:1px solid var(--border);padding:8px 12px;border-radius:10px;background:#151617}
+    h1{margin:0;font-size:24px}
+    .list{display:grid;gap:12px;margin-top:10px}
+    .card{border:1px solid var(--border);background:var(--surface);border-radius:14px;padding:14px;display:flex;align-items:center;justify-content:space-between}
+    .meta{font-size:12px;color:var(--muted)}
+    .btn{padding:10px 14px;border-radius:12px;border:1px solid #30363d;background:#16181b;color:#fff;text-decoration:none}
+    .go{border-color:#167f48;background:linear-gradient(180deg,#1eaa59,#16894a)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <a class="back" href="{% url 'completed-grouped' %}">← Wróć</a>
+      <h1>{{ case.name }} — podejścia</h1>
+      <div></div>
+    </div>
+
+    <div class="list">
+      {% for x in items %}
+        <div class="card">
+          <div>
+            <div class="meta">{{ x.created_at|date:"Y-m-d H:i" }} · zaliczone: {{ x.is_completed|yesno:"tak,nie" }}</div>
+          </div>
+          <a class="btn go" href="{% url 'completed-detail' x.pk %}">Podgląd</a>
+        </div>
+      {% empty %}
+        <div style="opacity:.8">Brak podejść dla tego przypadku.</div>
+      {% endfor %}
+    </div>
+  </div>
+</body>
+</html>

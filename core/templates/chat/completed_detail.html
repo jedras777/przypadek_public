@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <title>{{ item.case.name }} — podejście</title>
+  <style>
+    :root{color-scheme:dark;--bg:#0f1012;--surface:#1a1b1d;--border:#26292b;--text:#eceff1;--muted:#a6abb0;--green:#16894a}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+    .wrap{max-width:980px;margin:0 auto;padding:28px 18px}
+    .back{color:var(--text);text-decoration:none;border:1px solid var(--border);padding:8px 12px;border-radius:10px;background:#151617}
+    h1{margin:14px 0 0;font-size:24px}
+    .evaluation{margin:16px 0 16px;padding:16px;border-radius:14px;border:1px solid rgba(46,198,109,.35);background:rgba(46,198,109,.08)}
+    .verdict{font-weight:700;margin-bottom:8px}
+    .chat{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+    .msg{display:flex}
+    .bubble{max-width:78%;padding:12px 14px;border-radius:16px;border:1px solid var(--border);background:#141516;white-space:pre-wrap;line-height:1.4}
+    .msg.user{justify-content:flex-start}
+    .msg.user .bubble{background:linear-gradient(180deg,#1f2937,#16181b)}
+    .msg.assistant{justify-content:flex-end}
+    .msg.assistant .bubble{background:linear-gradient(180deg,#1eaa59,#16894a);color:#fff;border-color:#167f48}
+    .meta{align-self:flex-end;font-size:11px;color:var(--muted);margin:0 8px;min-width:70px;text-align:center}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="{% url 'completed-case' item.case.slug %}">← Wróć</a>
+    <h1>{{ item.case.name }}</h1>
+    <div style="color:#a6abb0;font-size:12px">{{ item.created_at|date:"Y-m-d H:i" }}</div>
+
+    <section class="evaluation">
+      <div class="verdict">{{ summary_meta.verdict }}</div>
+      <div>{{ summary_meta.summary }}</div>
+    </section>
+
+    <h3>Historia rozmowy</h3>
+    <div class="chat">
+      {% for stage_key, messages in item.chats.items %}
+        {% if stage_key != "__summary__" and messages %}
+          {% for m in messages %}
+            <div class="msg {% if m.role == 'user' %}user{% else %}assistant{% endif %}">
+              <div class="bubble">{{ m.text|linebreaksbr }}</div>
+              <div class="meta">{% if m.role == 'user' %}Ty{% else %}Asystent{% endif %}</div>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</body>
+</html>

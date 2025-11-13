@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <title>Ukończone przypadki</title>
+  <style>
+    :root{color-scheme:dark;--bg:#0f1012;--surface:#1a1b1d;--border:#26292b;--text:#eceff1;--muted:#a6abb0;--green:#2ec66d}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+    .wrap{max-width:980px;margin:0 auto;padding:28px 18px}
+    .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    h1{margin:0 auto;font-size:26px;font-weight:800}
+    a.back{color:var(--text);text-decoration:none;border:1px solid var(--border);padding:8px 12px;border-radius:10px;background:#151617}
+    .list{display:grid;gap:14px;margin-top:10px}
+    .card{border:1px solid var(--border);background:var(--surface);border-radius:14px;padding:14px;display:flex;align-items:center;justify-content:space-between}
+    .name{font-weight:800}
+    .meta{font-size:12px;color:var(--muted);margin-top:4px}
+    .btn{padding:10px 14px;border-radius:12px;border:1px solid #167f48;background:linear-gradient(180deg,#1eaa59,#16894a);color:#fff;text-decoration:none}
+    .pill{display:inline-block;padding:4px 8px;border:1px solid var(--border);border-radius:999px;font-size:12px;margin-right:6px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <a class="back" href="{% url 'home' %}">← Wróć</a>
+      <h1>Ukończone przypadki</h1>
+      <div></div>
+    </div>
+
+    <div class="list">
+      {% for g in groups %}
+        <div class="card">
+          <div>
+            <div class="name">{{ g.case__name }}</div>
+            <div class="meta">
+              <span class="pill">Podejść: {{ g.total }}</span>
+              Ostatnie: {{ g.last_time|date:"Y-m-d H:i" }}
+            </div>
+          </div>
+          <a class="btn" href="{% url 'completed-case' g.case__slug %}">Otwórz „folder”</a>
+        </div>
+      {% empty %}
+        <div style="opacity:.8">Brak zapisanych podejść.</div>
+      {% endfor %}
+    </div>
+  </div>
+</body>
+</html>

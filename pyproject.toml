@@ -1,0 +1,40 @@
+[project]
+name = "przypadek-pl"
+version = "0.1.0"
+description = "Symulacje przypadków klinicznych w Django"
+authors = [
+    { name = "Jedras777", email = "jedrzej.lukasik120@gmail.com" }
+]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "django (>=5.2.7,<6.0.0)",
+    "openai (>=2.5.0,<3.0.0)",
+    "python-dotenv (>=1.1.1,<2.0.0)"
+]
+
+[tool.poetry]
+package-mode = false
+
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "core.settings"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+src = ["core", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B"]
+ignore = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
