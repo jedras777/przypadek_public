@@ -38,3 +38,7 @@ line-ending = "lf"
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+[dependency-groups]
+dev = [
+    "coverage (>=7.11.3,<8.0.0)"
+]
